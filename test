@@ -1,0 +1,54 @@
+# !/bin/bash
+# personal script for testing multiple postgres test scripts
+
+echo "\nCreating database...\n"
+
+sudo -u postgres dropdb cal
+sudo -u postgres createdb -T mymy cal
+sudo -u postgres psql cal --quiet -f ass2.sql
+
+echo ""
+
+echo "\nTesting...\n"
+
+echo "\nTesting CSE test cases mymy1\n"
+
+sudo -u postgres psql cal << EOF
+select * from check_all();
+\q
+EOF
+
+sudo -u postgres dropdb cal
+sudo -u postgres createdb -T mymy2 cal
+sudo -u postgres psql cal --quiet -f ass2.sql
+
+echo "\nTesting CSE test cases mymy2\n"
+
+sudo -u postgres psql cal << EOF
+select * from check_all();
+\q
+EOF
+
+echo "\nTesting personal test cases\n"
+
+sudo -u postgres psql cal << EOF
+\o mine.txt
+select q10('COMP6080') order by q10;
+\q
+EOF
+
+echo " q10 
+-----
+(0 rows)
+" > cse.txt
+
+DIFF=$(diff mine.txt cse.txt) 
+
+if [ "$DIFF" = "" ] 
+then
+    echo "All passed!\n"
+    rm mine.txt cse.txt
+else 
+    echo "Not passed"
+    code mine.txt cse.txt
+fi
